@@ -25,7 +25,7 @@ export default class Database {
                         console.log("Erro Recebido: ", error);
                         console.log("O Banco de dados não está pronto ... Criando Dados");
                         db.transaction((tx) => {
-                            tx.executeSql('CREATE TABLE IF NOT EXISTS Tarefa (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, termino TEXT, prioridade INTEGER, concluido INTEGER, atrasado INTEGER)');
+                            tx.executeSql('CREATE TABLE IF NOT EXISTS Tarefa (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, termino TEXT, prioridade TEXT, concluido INTEGER, atrasado INTEGER)');
                         }).then(() => {
                             console.log("Tabela criada com Sucesso");
                         }).catch(error => {

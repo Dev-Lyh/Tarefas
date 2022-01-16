@@ -6,30 +6,31 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  StatusBar
+  StatusBar,
 } from 'react-native'
 
+// Components Items
+import Prioridades from './src/components/Prioridades';
+import TaskCard from './src/components/TaskCard';
+
+// Database Items
 import Database from './src/db/Database'
 import Tarefa from './src/db/Tarefa';
 
 export default class App extends Component {
 
   constructor(props) {
-    super(props),
+    super(props)
       this.state = {
         titulo: "",
-        termino: { dia: "15", mes: "01", ano: "2022" },
-        prioridade: 0,
+        termino: "",
+        prioridade: "Pressione para selecionar!",
         concluido: 0,
-        atrasado: 0
+        atrasado: 0,
+        lista: []
       }
 
     this.Listar();
-  }
-
-  FormataData(aaaa, mm, dd) {
-    let dataCompleta = aaaa + "-" + mm + "-" + dd
-    // console.log(dataCompleta, typeof(dataCompleta))
   }
 
   Listar = () => {
@@ -40,11 +41,23 @@ export default class App extends Component {
       }
     )
   }
-  Cadastrar = (titulo, termino, prioridade, concluido, atrasado) => {
-    const novaTarefa = new Tarefa(titulo, termino, prioridade, concluido, atrasado);
+  Cadastrar = (titulo, termino, prioridade) => {
+    const novaTarefa = new Tarefa(titulo, termino, prioridade);
     const banco = new Database();
     banco.Inserir(novaTarefa)
     this.Listar()
+  }
+
+
+  setPriority = (option) => {
+    this.setState({ prioridade: option })
+    console.log(this.state.prioridade)
+  }
+  
+  validationDate = (value) => {
+    if(this.state.termino.length >= 2) {
+      value += "/"
+    }
   }
 
   render() {
@@ -53,33 +66,47 @@ export default class App extends Component {
         <StatusBar backgroundColor={'#10CD7B'} barStyle='dark-content' />
         <View style={styles.globalView}>
           <View style={{ marginBottom: 25 }}>
-            <Text style={styles.titleInput}>Título</Text>
-            <TextInput style={styles.inputText} placeholderTextColor={'#305D4A'} placeholder='Escolha um nome para a sua tarefa...' />
+            <Text style={styles.titleInput} allowFontScaling={false}>Título</Text>
+            <TextInput style={styles.inputText} placeholderTextColor={'#305D4A'} placeholder='Escolha um nome para a sua tarefa...' onChangeText={(valorTitle) => {this.setState({titulo: valorTitle})}} allowFontScaling={false}/>
           </View>
           <View style={{ marginBottom: 25 }}>
-            <Text style={styles.titleInput}>Data de término</Text>
+            <Text style={styles.titleInput} allowFontScaling={false}>Data de término</Text>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <TextInput style={styles.inputData} placeholderTextColor={'#305D4A'} placeholder='Dia' keyboardType='numeric' />
-              <Text style={styles.slashText}>/</Text>
-              <TextInput style={styles.inputData} placeholderTextColor={'#305D4A'} placeholder='Mês' keyboardType='numeric' />
-              <Text style={styles.slashText}>/</Text>
-              <TextInput style={styles.inputData} placeholderTextColor={'#305D4A'} placeholder='Ano' keyboardType='numeric' />
+
+              <TextInput style={styles.inputData} placeholderTextColor={'#305D4A'} placeholder='__/__/____' keyboardType='numbers-and-punctuation' onChangeText={(valorTermino) => this.validationDate(valorTermino)} allowFontScaling={false}/>
+
             </View>
           </View>
           <View>
-            <Text style={styles.titleInput}>Prioridade</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <TouchableOpacity style={styles.buttonPriority}>
-                <Text style={styles.textPriority}>BAIXA</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPriority}>
-                <Text style={styles.textPriority}>MÉDIA</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.buttonPriority}>
-                <Text style={styles.textPriority}>URGENTE</Text>
-              </TouchableOpacity>
+            <View style={styles.spaceBetween}>
+              <Text style={styles.titleInput} allowFontScaling={false}>Prioridade: </Text>
+              <Text style={{color: '#f5f5f5', backgroundColor: 'rgba(16,205,123, 0.1)', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 2,}} allowFontScaling={false}>{this.state.prioridade}</Text>
             </View>
+            <Prioridades priority={this.setPriority}/>
           </View>
+          <View style={{alignItems: 'center'}}>
+            <TouchableOpacity style={styles.buttonAdd} onPress={() => this.Cadastrar()}>
+              <Text style={styles.textAdd} allowFontScaling={false}>Adicionar tarefa</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.listTitle} allowFontScaling={false}>
+            Tarefas
+          </Text>
+          <ScrollView>
+            {
+              this.state.lista.map(
+                (item, index) => (
+                  <TaskCard 
+                    key={index}
+                    item={item}
+                    id={item.id}
+                    title={item.titulo}
+                    date={item.termino}
+                  />
+                )
+              )
+            }
+          </ScrollView>
         </View>
       </>
     )
@@ -94,8 +121,8 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     color: '#ffffff',
-    fontSize: 18,
-    marginBottom: 5
+    fontSize: 16,
+    marginBottom: 5,
   },
   inputText: {
     borderWidth: 2,
@@ -106,11 +133,11 @@ const styles = StyleSheet.create({
     color: '#10CD7B',
     fontSize: 16,
     paddingHorizontal: 15,
-    height: 40
+    minHeight: 40
   },
   inputData: {
-    height: 40,
-    width: 80,
+    minHeight: 40,
+    width: '100%',
     borderWidth: 2,
     borderColor: '#10CD7B',
     borderRadius: 8,
@@ -125,20 +152,39 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#A4FFD7'
   },
-  buttonPriority: {
-    flexDirection: 'row',
-    height: 40,
-    width: 100,
-    borderWidth: 2,
-    borderColor: '#10CD7B',
-    borderRadius: 8,
-    backgroundColor: '#181818',
-    fontSize: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   textPriority: {
     fontWeight: 'bold',
-    color: '#ffffff'
+    color: '#ffffff',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  buttonAdd: {
+    paddingVertical: 12,
+    width: 157,
+    backgroundColor: '#10CD7B',
+    alignItems: 'center',
+    marginBottom: 30,
+    borderRadius: 25
+  },
+  textAdd: {
+    color: '#181818',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  spaceBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  listTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    borderStyle: 'dotted',
+    borderWidth: 2,
+    borderColor: "#10CB7D",
+    paddingLeft: 15,
+    paddingVertical: 5,
+    marginBottom: 10
   }
 })
