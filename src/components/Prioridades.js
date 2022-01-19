@@ -18,7 +18,7 @@ export default class Prioridades extends Component {
       return (
         <TouchableOpacity
           key={index}
-          onLongPress={() => this.onPressItem(item)}
+          onPress={() => this.onPressItem(item)}
           style={styles.touchable}
         >
 

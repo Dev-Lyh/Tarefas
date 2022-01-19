@@ -25,7 +25,7 @@ export default class Database {
                         console.log("Erro Recebido: ", error);
                         console.log("O Banco de dados não está pronto ... Criando Dados");
                         db.transaction((tx) => {
-                            tx.executeSql('CREATE TABLE IF NOT EXISTS Tarefa (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, termino TEXT, prioridade TEXT, concluido INTEGER, atrasado INTEGER)');
+                            tx.executeSql('CREATE TABLE IF NOT EXISTS Tarefa (id INTEGER PRIMARY KEY AUTOINCREMENT, titulo TEXT, termino TEXT, prioridade TEXT, concluido TEXT, atrasado INTEGER)');
                         }).then(() => {
                             console.log("Tabela criada com Sucesso");
                         }).catch(error => {
@@ -131,7 +131,7 @@ export default class Database {
             this.Conectar().then((db) => {
                 db.transaction((tx) => {
                     //Query SQL para atualizar um dado no banco        
-                    tx.executeSql('UPDATE Tarefa SET prioridade = ? WHERE id = ?', [item.prioridade - 1, item.id]).then(([tx, results]) => {
+                    tx.executeSql('UPDATE Tarefa SET concluido = "Sim" WHERE id = ?', [item.id]).then(([tx, results]) => {
                         resolve(results);
                     });
                 }).then((result) => {

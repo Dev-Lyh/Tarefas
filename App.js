@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   StatusBar,
+  LogBox,
 } from 'react-native'
 
 // Components Items
@@ -21,14 +22,14 @@ export default class App extends Component {
 
   constructor(props) {
     super(props)
-      this.state = {
-        titulo: "",
-        termino: "",
-        prioridade: "Pressione para selecionar!",
-        concluido: 0,
-        atrasado: 0,
-        lista: []
-      }
+    this.state = {
+      titulo: "",
+      termino: "",
+      prioridade: "Toque para selecionar!",
+      concluido: "Não",
+      atrasado: 0,
+      lista: []
+    }
 
     this.Listar();
   }
@@ -47,77 +48,87 @@ export default class App extends Component {
     banco.Inserir(novaTarefa)
     this.Listar()
   }
+  Concluir = (item) => {
+    const banco = new Database();
+    banco.Atualizar(item)
+    this.Listar()
+  }
 
+  Excluir = (id) => {
+    const banco = new Database();
+    banco.Remover(id)
+    this.Listar()
+  }
 
   setPriority = (option) => {
     this.setState({ prioridade: option })
     console.log(this.state.prioridade)
   }
-  
+
   validationDate = (value) => {
-    if(this.state.termino.length >= 2) {
-      value += "/"
-    }
+    this.setState({ termino: value })
   }
 
   render() {
     return (
-      <>
+      <ScrollView style={styles.globalView}>
+        { LogBox.ignoreAllLogs(true) }
         <StatusBar backgroundColor={'#10CD7B'} barStyle='dark-content' />
-        <View style={styles.globalView}>
-          <View style={{ marginBottom: 25 }}>
-            <Text style={styles.titleInput} allowFontScaling={false}>Título</Text>
-            <TextInput style={styles.inputText} placeholderTextColor={'#305D4A'} placeholder='Escolha um nome para a sua tarefa...' onChangeText={(valorTitle) => {this.setState({titulo: valorTitle})}} allowFontScaling={false}/>
-          </View>
-          <View style={{ marginBottom: 25 }}>
-            <Text style={styles.titleInput} allowFontScaling={false}>Data de término</Text>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-
-              <TextInput style={styles.inputData} placeholderTextColor={'#305D4A'} placeholder='__/__/____' keyboardType='numbers-and-punctuation' onChangeText={(valorTermino) => this.validationDate(valorTermino)} allowFontScaling={false}/>
-
-            </View>
-          </View>
-          <View>
-            <View style={styles.spaceBetween}>
-              <Text style={styles.titleInput} allowFontScaling={false}>Prioridade: </Text>
-              <Text style={{color: '#f5f5f5', backgroundColor: 'rgba(16,205,123, 0.1)', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 2,}} allowFontScaling={false}>{this.state.prioridade}</Text>
-            </View>
-            <Prioridades priority={this.setPriority}/>
-          </View>
-          <View style={{alignItems: 'center'}}>
-            <TouchableOpacity style={styles.buttonAdd} onPress={() => this.Cadastrar()}>
-              <Text style={styles.textAdd} allowFontScaling={false}>Adicionar tarefa</Text>
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.listTitle} allowFontScaling={false}>
-            Tarefas
-          </Text>
-          <ScrollView>
-            {
-              this.state.lista.map(
-                (item, index) => (
-                  <TaskCard 
-                    key={index}
-                    item={item}
-                    id={item.id}
-                    title={item.titulo}
-                    date={item.termino}
-                  />
-                )
-              )
-            }
-          </ScrollView>
+        <View style={{ marginBottom: 25 }}>
+          <Text style={styles.titleInput} allowFontScaling={false}>Título</Text>
+          <TextInput style={styles.inputText} placeholderTextColor={'#305D4A'} placeholder='Escolha um nome para a sua tarefa...' onChangeText={(valorTitle) => { this.setState({ titulo: valorTitle }) }} allowFontScaling={false} />
         </View>
-      </>
+        <View style={{ marginBottom: 25 }}>
+          <Text style={styles.titleInput} allowFontScaling={false}>Data de término</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+
+            <TextInput style={styles.inputData} placeholderTextColor={'#305D4A'} placeholder='DD/MM/AAAA' keyboardType='numbers-and-punctuation' onChangeText={(valorTermino) => this.validationDate(valorTermino)} allowFontScaling={false} />
+
+          </View>
+        </View>
+        <View>
+          <View style={styles.spaceBetween}>
+            <Text style={styles.titleInput} allowFontScaling={false}>Prioridade: </Text>
+            <Text style={{ color: '#f5f5f5', backgroundColor: 'rgba(16,205,123, 0.1)', paddingVertical: 2, paddingHorizontal: 8, borderRadius: 2, }} allowFontScaling={false}>{this.state.prioridade}</Text>
+          </View>
+          <Prioridades priority={this.setPriority} />
+        </View>
+        <View style={{ alignItems: 'center' }}>
+          <TouchableOpacity style={styles.buttonAdd} onPress={() => this.Cadastrar(this.state.titulo, this.state.termino, this.state.prioridade)}>
+            <Text style={styles.textAdd} allowFontScaling={false}>Adicionar tarefa</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.listTitle} allowFontScaling={false}>
+          Tarefas
+        </Text>
+        <View style={{marginBottom: 30}}>
+          {
+            this.state.lista.map(
+              item => (
+                <TaskCard
+                  key={item.id}
+                  item={item}
+                  id={item.id}
+                  title={item.titulo}
+                  date={item.termino}
+                  status={item.prioridade}
+                  concluded={item.concluido}
+                  excluir={this.Excluir}
+                  concluir={this.Concluir}
+                />
+              )
+            )
+          }
+        </View>
+      </ScrollView>
     )
   }
 }
 const styles = StyleSheet.create({
   globalView: {
-    minHeight: '100%',
     backgroundColor: '#181818',
     paddingHorizontal: 20,
-    paddingVertical: 15
+    paddingVertical: 15,
   },
   titleInput: {
     color: '#ffffff',
@@ -133,7 +144,8 @@ const styles = StyleSheet.create({
     color: '#10CD7B',
     fontSize: 16,
     paddingHorizontal: 15,
-    minHeight: 40
+    minHeight: 40,
+    textAlign: 'center'
   },
   inputData: {
     minHeight: 40,
